@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1569524227 source:c:\users\nilo\desktop\allegro22\main.c
+	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_native_dialog.h>
+

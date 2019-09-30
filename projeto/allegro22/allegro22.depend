@@ -1,7 +1,23 @@
 # depslib dependency file v1.0
-1569524227 source:c:\users\nilo\desktop\allegro22\main.c
+1569808212 source:c:\users\nilo\desktop\allegro22\main.c
+	<stdio.h>
+	<stdlib.h>
 	<allegro5/allegro_native_dialog.h>
 	<allegro5/allegro_image.h>
 	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+
+1569870788 source:c:\repositoriopi2\projetointegrador2\projeto\allegro22\main.c
+	<stdio.h>
+	<stdlib.h>
 	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
 

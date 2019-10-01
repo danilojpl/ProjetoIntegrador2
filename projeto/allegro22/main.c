@@ -7,32 +7,26 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_primitives.h>
+#define FPS 60.0
 #define LARGURA_TELA 800
 #define ALTURA_TELA 600
-// funções
-struct NaveEspacial
+const int fps = 60;
+// protótipo
+struct obj
 {
- int x;
- int y;
- int vidas;
- int velocidade;
- int borda_x;
- int borda_y;
- int pontos;
-
+    int wx;
+    int wy;
+    int x;
+    int y;
+    int w;
+    int h;
+    int t;
 };
-/*void initNave (NaveEspacial (&nave)){
-    nave.x=20;
-    nave.y=altura_t/2;
-    nave.velocidade=7;
-    nave.borda_x=6;
-    nave.borda_y=7;
-    nave.pontos=0;
-
-} */
-
 int main(void){
 // iniciando
+al_init_font_addon();
+al_init_ttf_addon();
 al_init();
 al_init_image_addon();
 al_install_keyboard();
@@ -40,20 +34,23 @@ al_install_mouse();
 al_init_primitives_addon ();
 al_install_audio();
 al_init_acodec_addon();
-//NaveEspacial nave;
-
 // variaveis
+ALLEGRO_FONT *fonte = NULL;
+int posx=50, dir_x=5;
+int posy=100, dir_y=5;
+int desenha = 1;
 bool start=false;
 ALLEGRO_AUDIO_STREAM *musica = NULL;
 ALLEGRO_BITMAP *botao=NULL;
 ALLEGRO_BITMAP *botaoA=NULL;
+ALLEGRO_BITMAP *nave = NULL;
 botao= al_load_bitmap("acesso.png");
 botaoA= al_load_bitmap("apagado.png");
 al_reserve_samples(5);
-ALLEGRO_FONT *fonte = NULL;
 ALLEGRO_BITMAP *imagem = NULL;
 ALLEGRO_DISPLAY *janela = NULL;
 bool fim = false;
+ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 
 // display FULLSCREEN
@@ -75,35 +72,32 @@ if (!janela)
     al_identity_transform(&transformar);
     al_scale_transform(&transformar,red_x,red_y);
     al_use_transform(&transformar);
-
 // filas
     fila_eventos = al_create_event_queue();
-
+    timer = al_create_timer(1.0/fps);
 //SOURCES
     al_register_event_source(fila_eventos, al_get_keyboard_event_source());
     al_register_event_source(fila_eventos,al_get_mouse_event_source());
+    al_register_event_source(fila_eventos,al_get_timer_event_source(timer));
 // codigo
+//audio
     musica = al_load_audio_stream("BeepBox-Song.wav", 4, 1024);
     al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
     al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);
-    fonte = al_load_font("arial.ttf", 48, 0);
-
+//texto
+    fonte = al_load_font("space age.ttf", 41, 0);
+//imagem
+    nave = al_load_bitmap("nave.png");
     imagem = al_load_bitmap("menuteste2.bmp");
     al_set_new_display_flags (ALLEGRO_FULLSCREEN_WINDOW);
     janela = al_create_display(res_x_comp,res_y_comp);
 
-    //funções iniciais
+//funções iniciais
+al_clear_to_color(al_map_rgb(255, 255, 255));
+al_draw_bitmap_region(imagem,0,0,res_x_comp,res_y_comp,0,0,0);
 
-   // initNave(nave);
-
-    al_clear_to_color(al_map_rgb(255, 255, 255));
-   al_draw_bitmap_region(imagem,0,0,LARGURA_TELA,ALTURA_TELA,0,0,0);
-
-
+al_start_timer(timer);
 while(!fim){
-
-
-
     ALLEGRO_EVENT evento_atual;
     al_wait_for_event(fila_eventos, &evento_atual);
     if (evento_atual.type==ALLEGRO_EVENT_KEY_DOWN)
@@ -114,42 +108,63 @@ while(!fim){
 
     }
     // menu game
-    else if (evento_atual.type == ALLEGRO_EVENT_MOUSE_AXES){
-
+    if (start==false){
+        if (evento_atual.type == ALLEGRO_EVENT_MOUSE_AXES){
                 // Verificamos se ele está sobre a região do retângulo central
+                al_set_target_bitmap(al_get_backbuffer(janela));
                if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
                 evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
                 evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
                 evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2){
                     al_draw_bitmap(botao,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 ,0);
+
                 }
                 else{
-                    al_draw_bitmap(botaoA,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 ,0);
+                    al_draw_bitmap(botaoA,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao)/ 2 ,al_get_backbuffer);
                 }
 
     }
+
     else if (evento_atual.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
         {
                 if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
                 evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
                 evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
                 evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2){
-                     al_clear_to_color(al_map_rgb(255, 255, 255));
-                    al_destroy_audio_stream(musica);
-                    al_destroy_bitmap(imagem);
-                    al_destroy_bitmap(botao);
-                    al_destroy_bitmap(botaoA);
+                start = true;
                 }
             }
-
+    al_draw_text(fonte, al_map_rgb(0, 0, 0),LARGURA_TELA/2- al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2, 0, "Start");
+    }
+    else{
+        al_set_audio_stream_playing(musica,0);
+        al_clear_to_color(al_map_rgb(0, 0, 0));
+         if (evento_atual.type==ALLEGRO_EVENT_KEY_DOWN){
+            switch (evento_atual.keyboard.keycode)
+            {
+            case ALLEGRO_KEY_UP:
+                posy -= 10;
+                break;
+            case ALLEGRO_KEY_DOWN:
+                posy +=10;
+                break;
+            case ALLEGRO_KEY_RIGHT:
+                posx +=10;
+                break;
+            case ALLEGRO_KEY_LEFT:
+                posx -= 10;
+                break;
+            }
+        }
+    al_draw_bitmap (nave,posx,posy,0);
+    }
 
       al_flip_display();
 
 }
 
-
-
 // Finaliza a janela
+//al_destroy_bitmap(buffered);
 al_destroy_audio_stream(musica);
 al_destroy_display(janela);
 al_destroy_event_queue(fila_eventos);
@@ -158,3 +173,4 @@ al_destroy_bitmap(botao);
     return 0;
 
 }
+

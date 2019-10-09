@@ -1,0 +1,31 @@
+# depslib dependency file v1.0
+1570640654 source:c:\users\nilo\desktop\teste1.0\teste\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	<allegro5/allegro_primitives.h>
+	"objeto.h"
+
+1570635033 c:\users\nilo\desktop\teste1.0\teste\include\objeto.h
+
+1570640918 source:c:\users\nilo\desktop\genesis 1.5\genesis\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	<allegro5/allegro_primitives.h>
+	"objeto.h"
+
+1570635033 c:\users\nilo\desktop\genesis 1.5\genesis\include\objeto.h
+

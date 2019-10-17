@@ -11,10 +11,15 @@
 #include "objeto.h"
 #define LARGURA_TELA 800
 #define ALTURA_TELA 600
-
+#include <ctime>
 //variaveis globais
+ALLEGRO_BITMAP *inimigo = NULL;
+ALLEGRO_BITMAP *fase1 = NULL;
+ALLEGRO_BITMAP *bala = NULL;
 ALLEGRO_BITMAP *naveE = NULL;
+const int numCometas =10;
 const int fps = 60;
+const int numBalas =5;
 enum teclas {cima,baixo,esquerda,direita,espaco};
 // structs
 void Initnave(naveEspacial &nave);
@@ -23,10 +28,25 @@ void MoveNaveCima (naveEspacial &nave);
 void MoveNaveBaixo (naveEspacial &nave);
 void MoveNaveDireita (naveEspacial &nave);
 void MoveNaveEsquerda (naveEspacial &nave);
+
+void initBalas (projeteis balas[],int tamanho);
+void atiraBalas (projeteis balas[], int tamanho, naveEspacial nave );
+void atualizaBalas (projeteis balas[], int tamanho);
+void desenhaBalas (projeteis balas[], int tamanho);
+
+void initCometas (cometas cometa [],int tamanho);
+void spawnCometas (cometas cometa [],int tamanho);
+void atualizarCometas (cometas cometa [],int tamanho,naveEspacial &nave);
+void desenhaCometas (cometas cometa [],int tamanho);
+
+void initFase(fase &space);
+void desenhafase(fase &space);
 int main(void){
 // iniciando
+    cometas cometa[numCometas];
+    fase space;
     naveEspacial nave;
-
+    projeteis balas [numBalas];
     al_init_font_addon();
     al_init_ttf_addon();
     al_init();
@@ -38,14 +58,16 @@ int main(void){
     al_init_acodec_addon();
 
 // variaveis
+    //ALLEGRO_BITMAP *fase1 = NULL;
     bool teclas []={false,false,false,false,false};
     ALLEGRO_FONT *fonte = NULL;
     bool desenha = true;
     bool start=false;
     ALLEGRO_AUDIO_STREAM *musica = NULL;
+    //ALLEGRO_BITMAP *bala = NULL;
     ALLEGRO_BITMAP *botao=NULL;
     ALLEGRO_BITMAP *botaoA=NULL;
-    ALLEGRO_BITMAP *espacof = NULL;
+   //ALLEGRO_BITMAP *espacof = NULL;
     al_reserve_samples(5);
     ALLEGRO_BITMAP *imagem = NULL;
     ALLEGRO_DISPLAY *janela = NULL;
@@ -84,7 +106,11 @@ int main(void){
 
 
 // codigo
+    srand(time(NULL));
+    initCometas(cometa,numCometas);
+    initFase(space);
     Initnave(nave);
+    initBalas(balas,numBalas);
 //audio
     musica = al_load_audio_stream("BeepBox-Song.wav", 4, 1024);
     al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
@@ -93,7 +119,10 @@ int main(void){
     fonte = al_load_font("space age.ttf", 41, 0);
 
 //imagem
-    espacof= al_load_bitmap("primeira1.png");
+    inimigo =al_load_bitmap("boarder.png");
+    fase1 = al_load_bitmap("primeira1.png");
+    bala = al_load_bitmap("shot2.png");
+    //espacof= al_load_bitmap("primeira1.png");
     botao= al_load_bitmap("aceso.png");
     botaoA= al_load_bitmap("apagado.png");
     naveE = al_load_bitmap("ship2.png");
@@ -170,6 +199,7 @@ while(!fim){
                     break;
                 case ALLEGRO_KEY_SPACE:
                     teclas [espaco]=true;
+                    atiraBalas(balas,numBalas,nave);
                     break;
             }
         }
@@ -189,9 +219,7 @@ while(!fim){
                 case ALLEGRO_KEY_LEFT:
                     teclas [esquerda] = false;
                     break;
-                case ALLEGRO_KEY_SPACE:
-                    teclas [espaco]=false;
-                    break;
+
             }
         }
         else if (evento_atual.type == ALLEGRO_EVENT_TIMER)
@@ -205,12 +233,20 @@ while(!fim){
             MoveNaveBaixo (nave);
         if (teclas[direita])
             MoveNaveDireita(nave);
-
+        if (teclas[espaco])
+            atualizaBalas(balas,numBalas);
         al_clear_to_color(al_map_rgb(0, 0, 0));
 
+        spawnCometas(cometa,numCometas);
+        atualizarCometas(cometa,numCometas,nave);
+      //  desenhafase(space);
        if (desenha && al_is_event_queue_empty(fila_eventos))
         {
+
+            desenha = false;
              desenhanave(nave);
+             desenhaBalas(balas,numBalas);
+             desenhaCometas(cometa,numCometas);
             al_flip_display();
             al_clear_to_color (al_map_rgb(0,0,0));
         }
@@ -226,6 +262,7 @@ al_destroy_display(janela);
 al_destroy_event_queue(fila_eventos);
 al_destroy_bitmap(imagem);
 al_destroy_bitmap(botao);
+al_destroy_timer(timer);
     return 0;
 
 }
@@ -273,3 +310,137 @@ void MoveNaveEsquerda (naveEspacial &nave)
         nave.x =0;
 
 }
+
+void initBalas (projeteis balas[],int tamanho)
+{
+    for (int i=0;i<tamanho;i++){
+        balas[i].id= projetil;
+        balas[i].velocidade = 10;
+        balas [i].ativo=false;
+
+    }
+}
+void atiraBalas (projeteis balas[], int tamanho, naveEspacial nave )
+{
+    for (int i=0;i<tamanho;i++){
+        if (!balas[i].ativo){
+            balas[i].x = nave.x+24;
+            balas[i].y = nave.y+9;
+            balas[i].ativo=true;
+            break;
+        }
+
+    }
+
+}
+void atualizaBalas (projeteis balas[], int tamanho)
+{
+   for (int i=0;i<tamanho;i++){
+        if (balas[i].ativo)
+        {
+            balas[i].x+=balas[i].velocidade;
+            if (balas[i].x> LARGURA_TELA)
+                balas[i].ativo=false;
+        }
+   }
+
+}
+void desenhaBalas (projeteis balas[], int tamanho)
+{
+    for (int i=0;i<tamanho;i++)
+    {
+        if (balas[i].ativo)
+        {
+            al_draw_bitmap(bala,balas[i].x,balas[i].y,0);
+            //al_draw_filled_circle(balas[i].x,balas[i].y,2,al_map_rgb(255,255,255));
+        }
+    }
+
+}
+void initFase (fase &space){
+    space.velocidade=10;
+    space.x = 800;
+}
+void desenhafase(fase &space){
+    while (1){
+    al_draw_bitmap(fase1,space.x-=space.velocidade,0,0);
+     if (space.x<0)
+            al_draw_bitmap(fase1,space.x-=space.velocidade,0,0);
+            break;
+    }
+}
+
+void initCometas (cometas cometa [],int tamanho)
+{
+    for (int i =0;i<tamanho;i++){
+        cometa[i].id=inimigos;
+        cometa[i].velocidade = 5;
+        cometa[i].bordaX=29;
+        cometa[i].bordaY=29;
+        cometa[i].ativo= false;
+    }
+}
+void spawnCometas (cometas cometa [],int tamanho)
+{
+    for (int i=0;i<tamanho;i++){
+        if (!cometa[i].ativo)
+        {
+            if (rand()%500==0)
+            {
+                cometa[i].x=LARGURA_TELA;
+                cometa[i].y =30+rand()%(ALTURA_TELA-60);
+                cometa[i].ativo=true;
+                break;
+            }
+        }
+    }
+
+}
+void atualizarCometas (cometas cometa [],int tamanho,naveEspacial &nave)
+{
+ for (int i=0;i<tamanho;i++)
+ {
+     if (cometa[i].ativo)
+     {
+         cometa[i].x-=cometa[i].velocidade;
+         if (cometa[i].x<0)
+         {
+             cometa[i].ativo=false;
+         }
+         if (cometa[i].x<LARGURA_TELA/2)
+         {
+             while (cometa[i].y!=nave.y){
+                if (cometa[i].x>nave.x){
+                    if(cometa[i].y>nave.y){
+                        cometa[i].y-=cometa[i].velocidade;
+                        break;
+                    }
+                    else if(cometa[i].y<nave.y){
+                        cometa[i].y+=cometa[i].velocidade;
+                        break;
+                    }
+
+                    }
+                    break;
+            }
+         }
+     }
+ }
+
+}
+void desenhaCometas (cometas cometa [],int tamanho)
+{
+    for (int i =0;i<tamanho;i++)
+    {
+        if (cometa[i].ativo)
+        {
+            //al_draw_bitmap(inimigo,cometa[i].x,cometa[i].y-20);
+            al_draw_bitmap(inimigo,cometa[i].x,cometa[i].y,0);
+        }
+
+    }
+
+}
+
+
+

@@ -14,4 +14,27 @@ struct naveEspacial
     int pontos;
 };
 
+struct projeteis
+{
+    int id ;
+    int x ;
+    int y;
+    int velocidade;
+    bool ativo;
+};
+struct cometas {
+    int id;
+    int x;
+    int y;
+    int velocidade;
+    int bordaX;
+    int bordaY;
+    bool ativo;
+
+};
+struct fase{
+ int x ;
+ int velocidade;
+};
+
 #endif // OBJETO_H

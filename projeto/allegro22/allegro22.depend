@@ -11,7 +11,7 @@
 	<allegro5/allegro_acodec.h>
 	<allegro5/allegro_primitives.h>
 
-1569903664 source:c:\repositoriopi2\projetointegrador2\projeto\allegro22\main.c
+1570645851 source:c:\repositoriopi2\projetointegrador2\projeto\allegro22\main.c
 	<stdio.h>
 	<stdlib.h>
 	<allegro5/allegro_native_dialog.h>
@@ -21,4 +21,5 @@
 	<allegro5/allegro_ttf.h>
 	<allegro5/allegro_audio.h>
 	<allegro5/allegro_acodec.h>
+	<allegro5/allegro_primitives.h>
 

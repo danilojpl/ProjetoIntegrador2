@@ -45,3 +45,35 @@
 
 1571242022 c:\repositoriopi2\projetointegrador2\projeto\genesisfirst\genesis\include\objeto.h
 
+1571602666 source:c:\users\nilo\desktop\genesisfirstteste\genesis\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	<allegro5/allegro_primitives.h>
+	"objeto.h"
+	<ctime>
+
+1571245622 c:\users\nilo\desktop\genesisfirstteste\genesis\include\objeto.h
+
+1571758909 source:c:\users\nilo\desktop\alphafinal\genesis\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<allegro5/allegro_native_dialog.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_audio.h>
+	<allegro5/allegro_acodec.h>
+	<allegro5/allegro_primitives.h>
+	"objeto.h"
+	<ctime>
+
+1571245622 c:\users\nilo\desktop\alphafinal\genesis\include\objeto.h
+

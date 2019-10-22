@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <allegro5/allegro_native_dialog.h>
@@ -12,16 +13,26 @@
 #define LARGURA_TELA 800
 #define ALTURA_TELA 600
 #include <ctime>
-//variaveis globais
+//--------VARIAVEIS GLOBAIS--------------
+ALLEGRO_BITMAP *botao=NULL;
+ALLEGRO_BITMAP *botaoA=NULL;
+ALLEGRO_BITMAP *imagem = NULL;
+bool menuu = false;
+bool start=false;
 ALLEGRO_BITMAP *inimigo = NULL;
 ALLEGRO_BITMAP *fase1 = NULL;
 ALLEGRO_BITMAP *bala = NULL;
+ALLEGRO_BITMAP *balaIn =NULL;
 ALLEGRO_BITMAP *naveE = NULL;
+ALLEGRO_BITMAP *explosao =NULL;
 const int numCometas =10;
 const int fps = 60;
 const int numBalas =5;
 enum teclas {cima,baixo,esquerda,direita,espaco};
-// structs
+// -----------------------------------------
+
+// --------PROTÓTIPOS------------------
+void menu();
 void Initnave(naveEspacial &nave);
 void desenhanave (naveEspacial &nave);
 void MoveNaveCima (naveEspacial &nave);
@@ -33,20 +44,31 @@ void initBalas (projeteis balas[],int tamanho);
 void atiraBalas (projeteis balas[], int tamanho, naveEspacial nave );
 void atualizaBalas (projeteis balas[], int tamanho);
 void desenhaBalas (projeteis balas[], int tamanho);
+void BalaColidida (projeteis balas[], int b_tamanho, cometas cometa[], int c_tamanho,naveEspacial &nave );  //17/10
+void BalaColididaIn (projeteis balas[], int b_tamanho, naveEspacial &nave);
+void atiraInimigos (cometas cometa [],int tamanho,projeteis balas[]);
+void atualizaBalasIn (projeteis balas[], int tamanho,cometas cometa[]);
+void desenhaBalasIn (projeteis balas[], int tamanho,cometas cometa[]);
+void initBalasIn (projeteis balas[],int tamanho);
 
 void initCometas (cometas cometa [],int tamanho);
 void spawnCometas (cometas cometa [],int tamanho);
 void atualizarCometas (cometas cometa [],int tamanho,naveEspacial &nave);
 void desenhaCometas (cometas cometa [],int tamanho);
+void CometaColidido(cometas cometa[],int c_tamanho,naveEspacial &nave); // 17/10
 
 void initFase(fase &space);
 void desenhafase(fase &space);
+
+//------------------------------------------------------
+
 int main(void){
 // iniciando
     cometas cometa[numCometas];
     fase space;
     naveEspacial nave;
     projeteis balas [numBalas];
+    projeteis balasIn [numBalas];
     al_init_font_addon();
     al_init_ttf_addon();
     al_init();
@@ -59,17 +81,19 @@ int main(void){
 
 // variaveis
     //ALLEGRO_BITMAP *fase1 = NULL;
+    bool atiraIn=false;
+    bool gameOver = false;
     bool teclas []={false,false,false,false,false};
     ALLEGRO_FONT *fonte = NULL;
     bool desenha = true;
-    bool start=false;
+    //bool start=false;
     ALLEGRO_AUDIO_STREAM *musica = NULL;
     //ALLEGRO_BITMAP *bala = NULL;
-    ALLEGRO_BITMAP *botao=NULL;
-    ALLEGRO_BITMAP *botaoA=NULL;
+    //ALLEGRO_BITMAP *botao=NULL;
+  //  ALLEGRO_BITMAP *botaoA=NULL;
    //ALLEGRO_BITMAP *espacof = NULL;
     al_reserve_samples(5);
-    ALLEGRO_BITMAP *imagem = NULL;
+   // ALLEGRO_BITMAP *imagem = NULL;
     ALLEGRO_DISPLAY *janela = NULL;
     bool fim = false;
     ALLEGRO_TIMER *timer = NULL;
@@ -111,14 +135,17 @@ int main(void){
     initFase(space);
     Initnave(nave);
     initBalas(balas,numBalas);
+    initBalasIn (balasIn,numBalas);
 //audio
     musica = al_load_audio_stream("BeepBox-Song.wav", 4, 1024);
-    al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
     al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);
+    al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
 //texto
     fonte = al_load_font("space age.ttf", 41, 0);
 
 //imagem
+    balaIn = al_load_bitmap("shot7.png");
+    explosao = al_load_bitmap("boom01.png");
     inimigo =al_load_bitmap("boarder.png");
     fase1 = al_load_bitmap("primeira1.png");
     bala = al_load_bitmap("shot2.png");
@@ -131,7 +158,7 @@ int main(void){
     janela = al_create_display(res_x_comp,res_y_comp);
 
     al_clear_to_color(al_map_rgb(255, 255, 255));
-    al_draw_bitmap_region(imagem,0,0,res_x_comp,res_y_comp,0,0,0);
+   //al_draw_bitmap_region(imagem,0,0,res_x_comp,res_y_comp,0,0,0);
 
     al_start_timer(timer);
 while(!fim){
@@ -144,40 +171,6 @@ while(!fim){
         }
 
     }
-    // menu game
-    if (start==false){
-        if (evento_atual.type == ALLEGRO_EVENT_MOUSE_AXES){
-                // Verificamos se ele está sobre o botao
-                al_set_target_bitmap(al_get_backbuffer(janela));
-               if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
-                evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
-                evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
-                evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2)
-                {
-                    al_draw_bitmap(botao,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 ,0);
-                }
-                else
-                {
-                    al_draw_bitmap(botaoA,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao)/ 2 ,0);
-                }
-        }
-
-        else if (evento_atual.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
-        {
-                if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
-                evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
-                evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
-                evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2)
-                {
-                start = true;
-                al_set_audio_stream_playing(musica,0);
-
-                }
-        }
-    al_draw_text(fonte, al_map_rgb(0, 0, 0),LARGURA_TELA/2- al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2, 0, "Start");
-    al_flip_display();
-    }
-    else{
         if (evento_atual.type == ALLEGRO_EVENT_KEY_DOWN)
         {
             switch (evento_atual.keyboard.keycode)
@@ -222,8 +215,56 @@ while(!fim){
 
             }
         }
+        if (rand()%10==0)
+            {
+                atiraInimigos(cometa,numBalas,balasIn);
+                atiraIn=true;
+            }
+   else if (evento_atual.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+        {
+                if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
+                evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
+                evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
+                evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2)
+                {
+                start = true;
+                gameOver=false;
+                Initnave(nave);
+                initCometas(cometa,numCometas);
+                initBalas(balas,numBalas);
+                nave.vidas=3;
+                }
+        }
         else if (evento_atual.type == ALLEGRO_EVENT_TIMER)
         {
+        //-----menu---------
+        if (!start){
+            Initnave(nave);
+           // al_draw_bitmap_region(imagem,0,0,res_x_comp,res_y_comp,0,0,0);
+            al_set_audio_stream_playing(musica,1);
+        if (evento_atual.type == ALLEGRO_EVENT_MOUSE_AXES){
+                // Verificamos se ele está sobre o botao
+               if (evento_atual.mouse.x >= LARGURA_TELA/2- al_get_bitmap_width(botao) / 2 &&
+                evento_atual.mouse.x <= LARGURA_TELA/2 + al_get_bitmap_width(botao) / 2 &&
+                evento_atual.mouse.y >= ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 &&
+                evento_atual.mouse.y <= ALTURA_TELA/2 + al_get_bitmap_height(botao) / 2)
+                {
+                  al_draw_bitmap(botao,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 ,0);
+                    //menuu =true;
+                }
+                else
+                {
+                   al_draw_bitmap(botaoA,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao)/ 2 ,0);
+                    //menuu=false;
+                }
+
+            }
+
+            al_draw_text(fonte, al_map_rgb(0, 0, 0),LARGURA_TELA/2- al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2, 0, "Start");
+            al_flip_display();
+
+        }else{
+             al_set_audio_stream_playing(musica,0);
             desenha = true;
         if (teclas[esquerda])
             MoveNaveEsquerda(nave);
@@ -235,23 +276,48 @@ while(!fim){
             MoveNaveDireita(nave);
         if (teclas[espaco])
             atualizaBalas(balas,numBalas);
-        al_clear_to_color(al_map_rgb(0, 0, 0));
-
-        spawnCometas(cometa,numCometas);
-        atualizarCometas(cometa,numCometas,nave);
+        if (atiraIn==true)
+            atualizaBalasIn(balasIn,numBalas,cometa);
+        if (!gameOver) //21/10
+        {
+            spawnCometas(cometa,numCometas);
+            atualizarCometas(cometa,numCometas,nave);
+            BalaColidida(balas,numBalas, cometa, numCometas,nave); //17/10
+            CometaColidido(cometa, numCometas,nave); //17/10
+            BalaColididaIn (balasIn,numBalas,nave);
+            if(nave.vidas <= 0) //21/10
+                gameOver = true;
+        }
+        else {
+            start=false;
+        }
+        }
       //  desenhafase(space);
        if (desenha && al_is_event_queue_empty(fila_eventos))
         {
-
             desenha = false;
-             desenhanave(nave);
-             desenhaBalas(balas,numBalas);
-             desenhaCometas(cometa,numCometas);
+            if (!start){
+            al_draw_bitmap_region(imagem,0,0,res_x_comp,res_y_comp,0,0,0);
+            if (menu){
+            al_draw_bitmap(botao,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao) / 2 ,0);
+            }else
+            al_draw_bitmap(botaoA,LARGURA_TELA/2-al_get_bitmap_width(botao) / 2,ALTURA_TELA/2 - al_get_bitmap_height(botao)/ 2 ,0);
+            }else{
+             if(!gameOver) //21/10
+            {
+                 desenhanave(nave);
+                 desenhaBalas(balas,numBalas);
+                 desenhaCometas(cometa,numCometas);
+                desenhaBalasIn(balasIn,numBalas,cometa);
+                desenhaCometas(cometa,numCometas);
+                 al_draw_textf(fonte,al_map_rgb(255,255,255),0,0,NULL,"VIDAS: %d  /  PONTOS: %d",nave.vidas,nave.pontos); //21/10
+            }
             al_flip_display();
             al_clear_to_color (al_map_rgb(0,0,0));
+            }
         }
     }
-    }
+
 
     }
 
@@ -266,6 +332,7 @@ al_destroy_timer(timer);
     return 0;
 
 }
+// ---------- NAVE ---------------
 void Initnave(naveEspacial &nave)
 {
     nave.x=20;
@@ -273,8 +340,8 @@ void Initnave(naveEspacial &nave)
     nave.id=jogador;
     nave.vidas =3;
     nave.velocidade=7;
-    nave.borda_x=6;
-    nave.borda_y=7;
+    nave.borda_x=12;
+    nave.borda_y=14;
     nave.pontos = 0;
 
 }
@@ -308,6 +375,53 @@ void MoveNaveEsquerda (naveEspacial &nave)
     nave.x -= nave.velocidade;
     if (nave.x <0)
         nave.x =0;
+
+}
+// -----------------------------------------
+
+// -----PROJÉTEIS ----------------------------
+void initBalasIn (projeteis balas[],int tamanho)
+{
+    for (int i=0;i<tamanho;i++){
+        balas[i].id= projetil;
+        balas[i].velocidade = 10;
+        balas [i].ativo=false;
+
+    }
+}
+void atiraInimigos (cometas cometa [],int tamanho,projeteis balas[])
+{
+    for (int i=0;i<tamanho;i++){
+        if (!balas[i].ativo && cometa[i].ativo){
+            balas[i].x = cometa[i].x-28;
+            balas[i].y = cometa[i].y+17;
+            balas[i].ativo=true;
+            break;
+        }
+
+    }
+
+}
+void atualizaBalasIn (projeteis balas[], int tamanho,cometas cometa[])
+{
+   for (int i=0;i<tamanho;i++){
+        if (balas[i].ativo)
+        {
+            balas[i].x-=balas[i].velocidade;
+            if (balas[i].x< 0)
+                balas[i].ativo=false;
+        }
+   }
+
+}
+void desenhaBalasIn (projeteis balas[], int tamanho,cometas cometa[])
+{
+    for (int i=0;i<tamanho;i++)
+
+        if (balas[i].ativo)
+        {
+            al_draw_bitmap(balaIn,balas[i].x,balas[i].y,0);
+        }
 
 }
 
@@ -348,15 +462,62 @@ void atualizaBalas (projeteis balas[], int tamanho)
 void desenhaBalas (projeteis balas[], int tamanho)
 {
     for (int i=0;i<tamanho;i++)
-    {
+
         if (balas[i].ativo)
         {
             al_draw_bitmap(bala,balas[i].x,balas[i].y,0);
-            //al_draw_filled_circle(balas[i].x,balas[i].y,2,al_map_rgb(255,255,255));
+        }
+}
+void BalaColididaIn (projeteis balas[], int b_tamanho, naveEspacial &nave)
+{
+    for(int i = 0; i < b_tamanho; i++)
+    {
+        if(balas[i].ativo)
+        {
+            if(balas[i].x > (nave.x - nave.borda_x) &&
+            balas[i].x < (nave.x + nave.borda_x) &&
+            balas[i].y > (nave.y - nave.borda_y) &&
+            balas[i].y < (nave.y + nave.borda_y))
+                {
+                    balas[i].ativo = false;
+                    nave.vidas-=1;
+                    printf("%d",nave.vidas);
+                }
         }
     }
 
 }
+
+
+
+void BalaColidida (projeteis balas[], int b_tamanho, cometas cometa[], int c_tamanho,naveEspacial &nave ) //17/10
+{
+    for(int i = 0; i < b_tamanho; i++)
+    {
+        if(balas[i].ativo)
+        {
+            for(int j = 0; j < c_tamanho; j++)
+            {
+                if(cometa[j].ativo)
+                {
+                    if(balas[i].x > (cometa[j].x - cometa[j].bordaX) &&
+                       balas[i].x < (cometa[j].x + cometa[j].bordaX) &&
+                       balas[i].y > (cometa[j].y - cometa[j].bordaY) &&
+                       balas[i].y < (cometa[j].y + cometa[j].bordaY))
+                    {
+
+                        balas[i].ativo = false;
+                        cometa[j].ativo = false;
+                        nave.pontos++;
+                    }
+
+            }
+        }
+    }
+    }
+
+}
+
 void initFase (fase &space){
     space.velocidade=10;
     space.x = 800;
@@ -369,7 +530,7 @@ void desenhafase(fase &space){
             break;
     }
 }
-
+// ---------- COMETAS ------------------------
 void initCometas (cometas cometa [],int tamanho)
 {
     for (int i =0;i<tamanho;i++){
@@ -403,13 +564,15 @@ void atualizarCometas (cometas cometa [],int tamanho,naveEspacial &nave)
      if (cometa[i].ativo)
      {
          cometa[i].x-=cometa[i].velocidade;
+
          if (cometa[i].x<0)
          {
              cometa[i].ativo=false;
          }
+
          if (cometa[i].x<LARGURA_TELA/2)
          {
-             while (cometa[i].y!=nave.y){
+             while (cometa[i].y<nave.y +10 || cometa[i].y>nave.y -10){
                 if (cometa[i].x>nave.x){
                     if(cometa[i].y>nave.y){
                         cometa[i].y-=cometa[i].velocidade;
@@ -434,7 +597,6 @@ void desenhaCometas (cometas cometa [],int tamanho)
     {
         if (cometa[i].ativo)
         {
-            //al_draw_bitmap(inimigo,cometa[i].x,cometa[i].y-20);
             al_draw_bitmap(inimigo,cometa[i].x,cometa[i].y,0);
         }
 
@@ -442,5 +604,27 @@ void desenhaCometas (cometas cometa [],int tamanho)
 
 }
 
+void CometaColidido(cometas cometa[],int c_tamanho,naveEspacial &nave) //17/10
+{
+    for(int i = 0; i < c_tamanho; i++)
+    {
+        if(cometa[i].ativo)
+        {
+           if((cometa[i].x - cometa[i].bordaX) < (nave.x + nave.borda_x) &&
+              (cometa[i].x + cometa[i].bordaX) > (nave.x - nave.borda_x) &&
+              (cometa[i].y - cometa[i].bordaY) < (nave.y + nave.borda_y) &&
+              (cometa[i].y + cometa[i].bordaY) > (nave.y - nave.borda_y))
+           {
+               cometa[i].ativo = false;
+               nave.vidas--;
+           }
+            else if (cometa[i].x<0)
+            {
+             cometa[i].ativo=false;
+             nave.vidas--;
+            }
+        }
+    }
 
 
+}

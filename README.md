@@ -1,4 +1,4 @@
-# SpaceExploration
+# Exploração espacial
 <h2> Projeto criado com a biblioteca allegro, utilizando a linguagem C++ </h2>
 <i> O objetivo desse jogo é ensinar noções básicas de astronomia, porem o jogo não está completo, falta abordar alguns temas e se aprofundar nos já citados.<i> 
  <hr>
